@@ -8,8 +8,8 @@ Aplikasi Laravel 11 untuk pengelolaan katalog perpustakaan, integrasi SOAP legac
 |---|---|
 | Nama Lengkap | Mia Nathania Sibuea |
 | NIM | 12S24005 |
-| Kelas | **Lengkapi kelas Anda** |
-| Program Studi | 13SI |
+| Kelas | 13SI |
+| Program Studi | Sistem Informasi |
 
 ## Analisis Kebutuhan dan Kelayakan Web Services
 
@@ -112,17 +112,25 @@ Contoh body SOAP:
 
 ## Bukti Pengujian Manual
 
-Tambahkan tangkapan layar hasil Postman Anda di `docs/screenshots/` sebelum pengumpulan. Jangan menyertakan bearer token aktif; sensor token apabila terlihat.
+Tangkapan layar Postman disimpan di `docs/screenshoot_w9/`. **Jangan commit screenshot yang memuat token sebelum menggantinya dengan salinan yang sudah disensor.**
 
-1. Permintaan SOAP XML berhasil dan SOAP Fault untuk XML/NIM tidak valid.
-2. Login API berhasil (token disensor).
-3. GET katalog berpaginasi dengan filter dan tautan HATEOAS.
-4. POST buku menghasilkan 201 dan header `Location`.
-5. Perbandingan PUT (422 saat atribut wajib hilang) dan PATCH (200).
-6. Peminjaman berhasil, penolakan stok habis (422), konflik pinjaman (409), dan pengembalian.
-7. Latihan GitHub REST API dari akun Anda dengan seluruh token disensor.
+### Bukti yang sudah tersedia
 
-Tangkapan layar autentikasi GitHub memerlukan akun/token milik mahasiswa dan tidak dibuat atau disimpan oleh repository ini. Request PATCH `/user` pada koleksi Postman mengubah bio profil GitHub; jalankan hanya jika memang ingin mengubah bio tersebut.
+1. SOAP normal: ![SOAP bebas pustaka berhasil](./docs/screenshoot_w9/01-soap-normal.png)
+2. SOAP Fault: ![SOAP Fault untuk NIM kosong](./docs/screenshoot_w9/02-soap-fault-lulus.png)
+3. GET katalog: ![GET katalog buku](./docs/screenshoot_w9/04-list-buku.png) dan [detail buku/HATEOAS](./docs/screenshoot_w9/05-show-book.png). **Ambil ulang katalog dengan query pagination/filter dan tampilan `meta` + `_links` agar seluruh bukti terlihat.**
+4. POST buku: ![POST buku 201](./docs/screenshoot_w9/06-create-book-201-created.png). **Ambil ulang dengan tab Headers terbuka agar header `Location` terbaca.**
+5. PATCH parsial: ![PATCH stok](./docs/screenshoot_w9/08-patch-partial-stock-update..png); PUT penggantian penuh: ![PUT buku](./docs/screenshoot_w9/09-put-full-replacement.png).
+
+### Bukti yang masih perlu ditambahkan atau diambil ulang
+
+- **Login:** `03-login.png` saat ini memperlihatkan bearer token. Token lokal pada akun uji sudah dicabut; hapus/ganti screenshot itu dengan hasil login baru yang tokennya disensor sebelum menyimpan atau membagikannya.
+- **Peminjaman:** `07-create-empty-stock-book.png` hanya membuktikan pembuatan buku dengan stok 0, bukan penolakan peminjaman. Tambahkan screenshot peminjaman sukses (`201` + `Location`), stok habis (`422`), dan peminjaman duplikat (`409`). `10-return-again-409-conflict.png` hanya membuktikan pengembalian kedua ditolak, bukan konflik peminjaman duplikat; screenshot ini juga menampilkan bearer token sehingga jangan publikasikan sebelum disensor.
+- **GitHub REST API:** belum ada screenshot hasil request GitHub. Ambil dari akun Anda sendiri dan sensor token sepenuhnya.
+
+Screenshot daftar katalog saat ini tidak menampilkan bukti pagination/meta secara jelas. Jika memungkinkan, tambahkan pula screenshot metadata Open Library untuk mendokumentasikan consumer API buku.
+
+Jangan simpan atau commit token GitHub maupun bearer token aktif. Request GitHub PATCH `/user` pada koleksi Postman mengubah bio profil; jalankan hanya jika Anda memang menginginkan perubahan itu.
 
 ## Struktur Utama
 
