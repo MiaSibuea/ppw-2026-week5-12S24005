@@ -1,0 +1,266 @@
+{
+  "info": {
+    "_postman_id": "d449e582-8270-4d58-82db-183676db90a4",
+    "name": "SIPUS-Del API v1",
+    "description": "REST, SOAP clearance, auth, and integration checks. Run login to save a short-lived bearer token in the selected local environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000" },
+    { "key": "apiUrl", "value": "{{baseUrl}}/api/v1" }
+  ],
+  "item": [
+    {
+      "name": "SOAP Clearance",
+      "item": [
+        {
+          "name": "WSDL Contract",
+          "request": { "method": "GET", "url": "{{baseUrl}}/soap/sipus.wsdl" }
+        },
+        {
+          "name": "Check Active Loans",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "text/xml" }],
+            "body": {
+              "mode": "raw",
+              "raw": "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Header/><soap:Body><CheckClearanceStatus><nim_peminjam>{{nim}}</nim_peminjam></CheckClearanceStatus></soap:Body></soap:Envelope>"
+            },
+            "url": "{{baseUrl}}/soap/sipus"
+          }
+        },
+        {
+          "name": "SOAP Fault - Empty NIM",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "text/xml" }],
+            "body": {
+              "mode": "raw",
+              "raw": "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><CheckClearanceStatus><nim_peminjam></nim_peminjam></CheckClearanceStatus></soap:Body></soap:Envelope>"
+            },
+            "url": "{{baseUrl}}/soap/sipus"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Login returns a token', function () { pm.response.to.have.status(200); });",
+                "if (pm.response.code === 200) pm.environment.set('token', pm.response.json().data.token);"
+              ]
+            }
+          }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"email\":\"{{email}}\",\"password\":\"{{password}}\"}" },
+            "url": "{{apiUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Current User",
+          "request": { "method": "GET", "url": "{{apiUrl}}/auth/me" }
+        },
+        {
+          "name": "Logout and Revoke Token",
+          "request": { "method": "POST", "url": "{{apiUrl}}/auth/logout" }
+        }
+      ]
+    },
+    {
+      "name": "Books",
+      "item": [
+        {
+          "name": "List - Search, Available, Sorted, Paginated",
+          "request": {
+            "method": "GET",
+            "url": "{{apiUrl}}/bukus?search={{search}}&tersedia=1&sort=judul&per_page=5"
+          }
+        },
+        {
+          "name": "Show Book",
+          "request": { "method": "GET", "url": "{{apiUrl}}/bukus/{{bookId}}" }
+        },
+        {
+          "name": "External Open Library Metadata",
+          "request": { "method": "GET", "url": "{{apiUrl}}/bukus/{{bookId}}/referensi-eksternal" }
+        },
+        {
+          "name": "Create Book - 201 Location",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Book created', function () { pm.response.to.have.status(201); });",
+                "if (pm.response.code === 201) pm.environment.set('bookId', pm.response.json().data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isbn\":\"{{isbn}}\",\"judul\":\"Buku Uji API SIPUS\",\"penulis\":\"Penulis Uji\",\"penerbit\":\"Del Press\",\"tahun_terbit\":2025,\"kategori_id\":{{categoryId}},\"stok\":2,\"sinopsis\":\"Buku untuk pengujian API.\"}"
+            },
+            "url": "{{apiUrl}}/bukus"
+          }
+        },
+        {
+          "name": "Create Empty-Stock Book for 422 Test",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Empty-stock book created', function () { pm.response.to.have.status(201); });",
+                "if (pm.response.code === 201) pm.environment.set('emptyBookId', pm.response.json().data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isbn\":\"{{emptyIsbn}}\",\"judul\":\"Buku Uji Tanpa Stok\",\"penulis\":\"Penulis Uji\",\"penerbit\":\"Del Press\",\"tahun_terbit\":2025,\"kategori_id\":{{categoryId}},\"stok\":0,\"sinopsis\":\"Buku uji penolakan stok habis.\"}"
+            },
+            "url": "{{apiUrl}}/bukus"
+          }
+        },
+        {
+          "name": "PATCH - Partial Stock Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"stok\":5}" },
+            "url": "{{apiUrl}}/bukus/{{bookId}}"
+          }
+        },
+        {
+          "name": "PUT - Full Replacement",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isbn\":\"{{isbn}}\",\"judul\":\"Buku Uji API SIPUS\",\"penulis\":\"Penulis Uji\",\"penerbit\":\"Del Press\",\"tahun_terbit\":2025,\"kategori_id\":{{categoryId}},\"stok\":5,\"sinopsis\":\"Buku pengujian.\"}"
+            },
+            "url": "{{apiUrl}}/bukus/{{bookId}}"
+          }
+        },
+        {
+          "name": "DELETE - Conflict if Borrowed",
+          "request": { "method": "DELETE", "url": "{{apiUrl}}/bukus/{{bookId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Loans",
+      "item": [
+        {
+          "name": "List - Filter by Status and NIM",
+          "request": {
+            "method": "GET",
+            "url": "{{apiUrl}}/peminjamans?status=dipinjam&nim={{nim}}"
+          }
+        },
+        {
+          "name": "Borrow - 201 Location",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Loan created', function () { pm.response.to.have.status(201); });",
+                "if (pm.response.code === 201) pm.environment.set('loanId', pm.response.json().data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"buku_id\":{{bookId}},\"nim_peminjam\":\"{{nim}}\",\"nama_peminjam\":\"Mahasiswa Uji\",\"durasi_hari\":7}" },
+            "url": "{{apiUrl}}/peminjamans"
+          }
+        },
+        {
+          "name": "Borrow Same Book Again - 409 Conflict",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"buku_id\":{{bookId}},\"nim_peminjam\":\"{{nim}}\",\"nama_peminjam\":\"Mahasiswa Uji\",\"durasi_hari\":7}" },
+            "url": "{{apiUrl}}/peminjamans"
+          }
+        },
+        {
+          "name": "Borrow Empty-Stock Book - 422",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"buku_id\":{{emptyBookId}},\"nim_peminjam\":\"{{nim}}\",\"nama_peminjam\":\"Mahasiswa Uji\",\"durasi_hari\":7}" },
+            "url": "{{apiUrl}}/peminjamans"
+          }
+        },
+        {
+          "name": "Return - 200",
+          "request": {
+            "method": "PATCH",
+            "url": "{{apiUrl}}/peminjamans/{{loanId}}/kembalikan"
+          }
+        },
+        {
+          "name": "Return Again - 409 Conflict",
+          "request": {
+            "method": "PATCH",
+            "url": "{{apiUrl}}/peminjamans/{{loanId}}/kembalikan"
+          }
+        }
+      ]
+    },
+    {
+      "name": "GitHub REST API Practice (Use Your Own Token)",
+      "description": "Optional lab exercise. Add a personal token only to your local Postman environment; never export or commit it. The PATCH request changes your GitHub profile bio.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{githubToken}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "GET Authenticated User",
+          "request": {
+            "method": "GET",
+            "url": "https://api.github.com/user",
+            "header": [{ "key": "Accept", "value": "application/vnd.github+json" }]
+          }
+        },
+        {
+          "name": "PATCH User Bio (Optional Mutation)",
+          "request": {
+            "method": "PATCH",
+            "url": "https://api.github.com/user",
+            "header": [
+              { "key": "Accept", "value": "application/vnd.github+json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"bio\":\"{{githubTestBio}}\"}" }
+          }
+        }
+      ]
+    }
+  ]
+}

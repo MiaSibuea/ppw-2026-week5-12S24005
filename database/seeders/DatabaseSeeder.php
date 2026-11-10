@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(PustakawanSeeder::class);
+
         $categoriesData = [
             [
                 'kode_kategori' => 'RPL-01',
@@ -54,7 +56,7 @@ class DatabaseSeeder extends Seeder
                         'stok' => 10,
                         'sinopsis' => 'Metodologi pengembangan TDD (Red-Green-Refactor) untuk menghasilkan kode yang bersih, bebas regresi, dan teruji secara ketat.',
                     ],
-                ]
+                ],
             ],
             [
                 'kode_kategori' => 'WEB-02',
@@ -96,7 +98,7 @@ class DatabaseSeeder extends Seeder
                         'stok' => 18,
                         'sinopsis' => 'Evolusi styling web modern, pemanfaatan sistem grid, utilitas CSS responsif, dan perancangan antarmuka modular.',
                     ],
-                ]
+                ],
             ],
             [
                 'kode_kategori' => 'BASDAT-03',
@@ -138,7 +140,7 @@ class DatabaseSeeder extends Seeder
                         'stok' => 11,
                         'sinopsis' => 'Kiat menyusun kueri SQL relasional yang efektif, manipulasi set data kompleks, subquery, dan join multi-tabel.',
                     ],
-                ]
+                ],
             ],
             [
                 'kode_kategori' => 'AI-04',
@@ -180,7 +182,7 @@ class DatabaseSeeder extends Seeder
                         'stok' => 5,
                         'sinopsis' => 'Landasan teori matematika dan statistik untuk pengenalan pola, inferensi Bayesian, dan estimasi parameter probabilitas.',
                     ],
-                ]
+                ],
             ],
             [
                 'kode_kategori' => 'JARKOM-05',
@@ -222,7 +224,7 @@ class DatabaseSeeder extends Seeder
                         'stok' => 9,
                         'sinopsis' => 'Bedah arsitektur paket protokol TCP/IP, flow control, congestion control, dan analisis lalu lintas jaringan tingkat rendah.',
                     ],
-                ]
+                ],
             ],
             [
                 'kode_kategori' => 'SI-06',
@@ -246,7 +248,7 @@ class DatabaseSeeder extends Seeder
                         'stok' => 11,
                         'sinopsis' => 'Kerangka kerja penyelarasan arsitektur teknologi informasi dengan visi strategis bisnis perusahaan multinasional.',
                     ],
-                ]
+                ],
             ],
         ];
 

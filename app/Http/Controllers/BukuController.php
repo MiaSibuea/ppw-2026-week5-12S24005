@@ -128,6 +128,11 @@ class BukuController extends Controller
      */
     public function destroy(Buku $buku)
     {
+        if ($buku->peminjamans()->where('status', 'dipinjam')->exists()) {
+            return redirect()->route('buku.index')
+                ->with('error', 'Buku tidak dapat dihapus selama masih memiliki peminjaman aktif.');
+        }
+
         $judul = $buku->judul;
         $buku->delete();
 
