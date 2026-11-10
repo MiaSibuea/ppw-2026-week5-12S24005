@@ -289,7 +289,36 @@ class RestApiTest extends TestCase
         Http::fake(['openlibrary.org/*' => fn () => throw new ConnectionException('Simulated timeout')]);
         $this->getJson("/api/v1/bukus/{$book->id}/referensi-eksternal")
             ->assertOk()
-            ->assertJsonPath('data.available', false);
+            ->assertJsonPath('data.available', false)
+            ->assertJsonPath('data.detail', 'Metadata eksternal sementara tidak dapat dijangkau.')
+            ->assertJsonPath('message', 'Metadata eksternal tidak tersedia.');
+    }
+
+    public function test_openlibrary_reference_handles_missing_isbn_metadata(): void
+    {
+        $category = Kategori::create(['kode_kategori' => 'API-6', 'nama_kategori' => 'API']);
+        $book = $this->createBook($category);
+        Http::fake(['openlibrary.org/*' => Http::response([], 200)]);
+
+        $this->getJson("/api/v1/bukus/{$book->id}/referensi-eksternal")
+            ->assertOk()
+            ->assertJsonPath('data.available', false)
+            ->assertJsonPath('data.detail', 'ISBN tidak ditemukan pada Open Library.')
+            ->assertJsonPath('message', 'Metadata eksternal tidak tersedia.')
+            ->assertJsonPath('meta', []);
+    }
+
+    public function test_openlibrary_reference_handles_upstream_http_failure(): void
+    {
+        $category = Kategori::create(['kode_kategori' => 'API-7', 'nama_kategori' => 'API']);
+        $book = $this->createBook($category);
+        Http::fake(['openlibrary.org/*' => Http::response([], 503)]);
+
+        $this->getJson("/api/v1/bukus/{$book->id}/referensi-eksternal")
+            ->assertOk()
+            ->assertJsonPath('data.available', false)
+            ->assertJsonPath('data.detail', 'Open Library mengembalikan respons yang tidak berhasil.')
+            ->assertJsonPath('message', 'Metadata eksternal tidak tersedia.');
     }
 
     private function createLibrarian(): User
