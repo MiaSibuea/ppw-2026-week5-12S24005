@@ -98,6 +98,15 @@ class KategoriController extends Controller
      */
     public function destroy(Kategori $kategori)
     {
+        $hasActiveLoans = $kategori->bukus()
+            ->whereHas('peminjamans', fn ($query) => $query->where('status', 'dipinjam'))
+            ->exists();
+
+        if ($hasActiveLoans) {
+            return redirect()->route('kategori.index')
+                ->with('error', 'Kategori tidak dapat dihapus selama masih memiliki peminjaman aktif.');
+        }
+
         $nama = $kategori->nama_kategori;
         $kategori->delete();
 
